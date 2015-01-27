@@ -1,2 +1,2 @@
 language: csharp
-solution: ShopMaker.sln
+solution: Code/ShopMaker/ShopMaker.sln
