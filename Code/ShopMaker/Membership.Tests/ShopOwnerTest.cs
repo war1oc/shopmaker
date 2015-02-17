@@ -5,6 +5,7 @@ using Moq;
 using Ninject;
 using Ninject.MockingKernel;
 using Ninject.MockingKernel.Moq;
+using System.Text.RegularExpressions;
 
 namespace ShopMaker.Membership.Tests
 {
@@ -16,9 +17,8 @@ namespace ShopMaker.Membership.Tests
             _kernel.Bind<IUserAccount>().To<ShopOwner>();
         }
 
+        #region Test For MatchPassword Method
 
-
-        #region Test_For_MatchPassword_Method
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void MatchPassword_NullPassword_ThrowsException()
@@ -45,49 +45,46 @@ namespace ShopMaker.Membership.Tests
         }
 
         [TestMethod]
-        public void MatchPassword_PlainPassword_ValidationResult()
+        public void MatchPassword_WrongPassword_ResultFalse()
         {
             // prepare
-            string PlainPassword = " ";
+            string PlainPassword = "133578";
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-            bool IsValid = shopOwnerAccount.MatchPassword(PlainPassword);
-            Assert.Equals(true, IsValid);
+            shopOwnerAccount.Password = "123456";
             // act
+            bool isCorrect = shopOwnerAccount.MatchPassword(PlainPassword);
 
-        } 
-        #endregion
-
-        #region Test_For_ChangeMembershipPlan_Method
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void ChangeMembershipPlan_NullNewPlan_ThrowsException()
-        {
-            // prepare
-
-            IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-
-
-            // act
+            // assert
+            Assert.Equals(false, isCorrect);
         }
 
-        public void ChangeMembershipPlan_NewPlan_CurrentPlanAsNewPlan()
+        [TestMethod]
+        public void MatchPassword_CorrectPassword_ResultTrue()
         {
             // prepare
-
+            string PlainPassword = "133578";
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-
-
+            shopOwnerAccount.Password = "133578";
             // act
+            bool isCorrect = shopOwnerAccount.MatchPassword(PlainPassword);
+
+            // assert
+            Assert.Equals(true, isCorrect);
         } 
+
         #endregion
-        
-        #region TestForEmailAddressProperty
+
+        #region Test For EmailAddress Property
+
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void EmailAddress_NullEmail_ThrowsException()
         {
+            // preapre
             string nullEmail = null;
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
+
+            // act
             shopOwnerAccount.EmailAddress = nullEmail;
         }
 
@@ -95,21 +92,38 @@ namespace ShopMaker.Membership.Tests
         [ExpectedException(typeof(ArgumentNullException))]
         public void EmailAddress_EmptyEmail_ThrowsException()
         {
+            // prepare
             string emptyEmail = string.Empty;
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
+
+            // act
             shopOwnerAccount.EmailAddress = emptyEmail;
         }
 
-        public void EmailAddress_InvalidFormatEmail_ThrowsException()
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void EmailAddress_AtTheRateMissingInEmailFormat_ThrowsException()
         {
+            // prepare
+            string invlaidEmail = "test.com";
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
+
+            // act
+            shopOwnerAccount.EmailAddress = invlaidEmail;           
         }
 
-        public void EmailAddress_EmailAlreadyExist_ThrowsException()
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void EmailAddress_DomainExtensionMissingInEmailFormat_ThrowsException()
         {
+            // prepare
+            string invlaidEmail = "test@test";
             IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
+
+            // act
+            shopOwnerAccount.EmailAddress = invlaidEmail;
         }
-        
+
         #endregion
 
         #region TestForPasswordProperty
@@ -132,28 +146,6 @@ namespace ShopMaker.Membership.Tests
             shopOwnerAccount.Password = emptyPassword;
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void Password_TooShortPassword_ThrowsException()
-        {
-
-            IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-            int PasswordLeghth = shopOwnerAccount.Password.Length;
-            if (PasswordLeghth < 6)
-                Assert.Fail();
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void Password_TooLongPassword_ThrowsException()
-        {
-            IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-            int PasswordLeghth = shopOwnerAccount.Password.Length;
-            if (PasswordLeghth > 20)
-                Assert.Fail();
-        }
-
-        
         #endregion
 
         #region TestForFirstNameProperty
@@ -297,12 +289,7 @@ namespace ShopMaker.Membership.Tests
 
         #region TestForIDProperty
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void ID_SetNullValue_ThrowsException()
-        {
-            IUserAccount shopOwnerAccount = _kernel.Get<IUserAccount>();
-        }
+        // I think no unit test is needed for this;
 
         #endregion
 
